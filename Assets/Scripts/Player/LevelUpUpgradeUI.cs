@@ -4,8 +4,11 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
+// Tạo màn hình chọn 1 trong 3 nâng cấp mỗi khi người chơi lên cấp.
+// Game tạm dừng trong lúc chọn và tiếp tục sau khi lựa chọn hoàn tất.
 public class LevelUpUpgradeUI : MonoBehaviour
 {
+    // Tham chiếu tới các hệ thống của người chơi mà nâng cấp có thể thay đổi.
     private PlayerStats stats;
     private SoulGun soulGun;
     private PlayerController controller;
@@ -14,6 +17,7 @@ public class LevelUpUpgradeUI : MonoBehaviour
     private readonly List<Button> buttons = new List<Button>();
     private int pendingChoices;
 
+    // Cho phép dùng phím 1, 2, 3 bên cạnh việc click chuột.
     void Update()
     {
         if (panel == null || !panel.activeSelf)
@@ -27,6 +31,7 @@ public class LevelUpUpgradeUI : MonoBehaviour
             buttons[2].onClick.Invoke();
     }
 
+    // Một lựa chọn nâng cấp gồm tên, mô tả và hành động được thực hiện khi chọn.
     private struct UpgradeOption
     {
         public string name;
@@ -41,6 +46,7 @@ public class LevelUpUpgradeUI : MonoBehaviour
         }
     }
 
+    // Chuẩn bị EventSystem, tìm Player và dựng giao diện lúc bắt đầu.
     void Start()
     {
         EnsureEventSystem();
@@ -48,6 +54,7 @@ public class LevelUpUpgradeUI : MonoBehaviour
         BuildUI();
     }
 
+    // Tạo EventSystem nếu Scene chưa có để Button có thể nhận click chuột.
     void EnsureEventSystem()
     {
         if (EventSystem.current != null)
@@ -58,12 +65,14 @@ public class LevelUpUpgradeUI : MonoBehaviour
         eventSystem.AddComponent<StandaloneInputModule>();
     }
 
+    // Hủy đăng ký sự kiện khi UI bị xóa để tránh gọi vào object không còn tồn tại.
     void OnDestroy()
     {
         if (stats != null)
             stats.LeveledUp -= OnLevelUp;
     }
 
+    // Tìm các component PlayerStats, SoulGun và PlayerController.
     void BindPlayer()
     {
         GameObject player = GameObject.FindWithTag("Player");
@@ -78,6 +87,7 @@ public class LevelUpUpgradeUI : MonoBehaviour
             stats.LeveledUp += OnLevelUp;
     }
 
+    // Mỗi lần lên cấp, thêm một lượt chọn nâng cấp đang chờ.
     void OnLevelUp(int newLevel)
     {
         pendingChoices++;
@@ -85,6 +95,7 @@ public class LevelUpUpgradeUI : MonoBehaviour
             ShowChoices(newLevel);
     }
 
+    // Lấy ngẫu nhiên 3 nâng cấp khác nhau và gán chúng vào ba Button.
     void ShowChoices(int level)
     {
         List<UpgradeOption> pool = BuildUpgradePool();
@@ -105,6 +116,7 @@ public class LevelUpUpgradeUI : MonoBehaviour
         Time.timeScale = 0f;
     }
 
+    // Danh sách toàn bộ nâng cấp hiện có của người chơi.
     List<UpgradeOption> BuildUpgradePool()
     {
         return new List<UpgradeOption>
@@ -118,6 +130,7 @@ public class LevelUpUpgradeUI : MonoBehaviour
         };
     }
 
+    // Áp dụng lựa chọn; nếu còn lượt lên cấp khác thì mở tiếp một bảng mới.
     void Choose(UpgradeOption option)
     {
         option.apply?.Invoke();
@@ -132,6 +145,7 @@ public class LevelUpUpgradeUI : MonoBehaviour
         }
     }
 
+    // Tạo Canvas, nền tối, tiêu đề và ba nút lựa chọn hoàn toàn bằng code.
     void BuildUI()
     {
         Font font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
@@ -180,6 +194,7 @@ public class LevelUpUpgradeUI : MonoBehaviour
         panel.SetActive(false);
     }
 
+    // Hàm hỗ trợ tạo một Text có vị trí và kích thước tùy chỉnh.
     Text CreateText(Transform parent, Font font, Vector2 position, Vector2 size, int fontSize)
     {
         GameObject textObject = new GameObject("Text");

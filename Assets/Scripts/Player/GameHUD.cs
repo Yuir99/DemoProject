@@ -1,8 +1,10 @@
 using UnityEngine;
 using UnityEngine.UI;
 
+// Tạo và cập nhật HUD chính: máu, XP, linh hồn, máu Lõi, thời gian và wave.
 public class GameHUD : MonoBehaviour
 {
+    // Tham chiếu dữ liệu gameplay và các thành phần UI cần cập nhật.
     private PlayerStats stats;
     private SoulGun soulGun;
     private Image hpFill;
@@ -16,11 +18,13 @@ public class GameHUD : MonoBehaviour
     private WaveSpawner waveSpawner;
     private Text timerText;
 
+    // Dựng toàn bộ HUD ngay khi GameObject được tạo.
     void Awake()
     {
         BuildHUD();
     }
 
+    // Mỗi frame đọc dữ liệu mới nhất rồi cập nhật chữ và độ đầy của các thanh.
     void Update()
     {
         BindPlayer();
@@ -57,6 +61,7 @@ public class GameHUD : MonoBehaviour
         }
     }
 
+    // Tự tìm Lõi Trung Tâm nếu chưa có tham chiếu.
     void BindCore()
     {
         if (energyCore != null)
@@ -65,12 +70,14 @@ public class GameHUD : MonoBehaviour
         energyCore = FindFirstObjectByType<EnergyCore>();
     }
 
+    // Tự tìm WaveSpawner để lấy thời gian còn lại và số wave.
     void BindSpawner()
     {
         if (waveSpawner == null)
             waveSpawner = FindFirstObjectByType<WaveSpawner>();
     }
 
+    // Tự tìm Player và hai component chứa máu/XP cùng kho linh hồn.
     void BindPlayer()
     {
         if (stats != null && soulGun != null)
@@ -87,6 +94,7 @@ public class GameHUD : MonoBehaviour
             soulGun = player.GetComponent<SoulGun>();
     }
 
+    // Tạo Canvas và bố trí các nhóm HUD trên màn hình.
     void BuildHUD()
     {
         Canvas canvas = gameObject.AddComponent<Canvas>();
@@ -136,6 +144,7 @@ public class GameHUD : MonoBehaviour
         timerText.fontSize = 28;
     }
 
+    // Hàm hỗ trợ tạo một panel nền tối.
     RectTransform CreatePanel(RectTransform parent, string name, Vector2 anchoredPosition, Vector2 size)
     {
         GameObject panelObject = new GameObject(name);
@@ -154,6 +163,7 @@ public class GameHUD : MonoBehaviour
         return rect;
     }
 
+    // Hàm hỗ trợ tạo một dòng chữ trong HUD.
     Text CreateText(RectTransform parent, string name, Font font, Vector2 anchoredPosition, string value)
     {
         GameObject textObject = new GameObject(name);
@@ -176,6 +186,7 @@ public class GameHUD : MonoBehaviour
         return text;
     }
 
+    // Hàm hỗ trợ tạo thanh nền và phần fill có thể thay đổi từ 0 đến 1.
     Image CreateBar(RectTransform parent, string name, Vector2 anchoredPosition, Color fillColor)
     {
         GameObject backgroundObject = new GameObject(name + " Background");

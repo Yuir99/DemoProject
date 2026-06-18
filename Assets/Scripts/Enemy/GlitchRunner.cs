@@ -1,9 +1,12 @@
 using UnityEngine;
 
+// Quái Tốc Độ: ít máu, chạy nhanh, sát thương thấp và rơi Speed Soul.
 public class GlitchRunner : EnemyBase
 {
+    // Giữ SpriteRenderer để tạo hiệu ứng chớp tắt.
     private SpriteRenderer spriteRenderer;
 
+    // Thiết lập bộ chỉ số, màu tạm và hitbox riêng của Glitch Runner.
     protected override void Start()
     {
         base.Start();
@@ -25,6 +28,7 @@ public class GlitchRunner : EnemyBase
             hitbox.radius = 0.38f;
     }
 
+    // Tiếp tục di chuyển bằng EnemyBase và thỉnh thoảng chớp tắt như bị glitch.
     protected override void Update()
     {
         base.Update();

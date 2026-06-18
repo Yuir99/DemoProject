@@ -1,6 +1,8 @@
 using System.Collections;
 using UnityEngine;
 
+// Điều khiển toàn bộ nhịp của màn chơi 15 phút:
+// sinh wave, tăng sức mạnh quái, tạo mini boss và boss cuối.
 public class WaveSpawner : MonoBehaviour
 {
     [Header("Enemy Prefabs")]
@@ -17,13 +19,16 @@ public class WaveSpawner : MonoBehaviour
     public float elapsedTime;
     public bool finalBossSpawned;
 
+    // Số giây còn lại để GameHUD hiển thị đồng hồ đếm ngược.
     public float RemainingTime => Mathf.Max(0f, matchDuration - elapsedTime);
 
+    // Bắt đầu chuỗi wave khi Scene chạy.
     void Start()
     {
         StartCoroutine(RunWaves());
     }
 
+    // Đếm thời gian trận đấu; khi hết giờ thì dừng wave và gọi boss cuối.
     void Update()
     {
         if (finalBossSpawned)
@@ -39,6 +44,7 @@ public class WaveSpawner : MonoBehaviour
         SpawnFinalBoss();
     }
 
+    // Cứ mỗi 20 giây tạo wave mới; mỗi wave thứ 5 có thêm mini boss.
     IEnumerator RunWaves()
     {
         yield return new WaitForSeconds(3f);
@@ -63,6 +69,7 @@ public class WaveSpawner : MonoBehaviour
         }
     }
 
+    // Sinh một nhóm quái từ prefab tại các SpawnPoint ngẫu nhiên.
     void SpawnGroup(GameObject prefab, int count)
     {
         if (prefab == null || count <= 0 || spawnPoints == null || spawnPoints.Length == 0)
@@ -77,6 +84,7 @@ public class WaveSpawner : MonoBehaviour
         }
     }
 
+    // Chờ quái hoàn tất Start rồi tăng chỉ số dựa trên tiến độ 15 phút.
     IEnumerator ApplyTimeDifficulty(GameObject enemyObject)
     {
         yield return null;
@@ -94,6 +102,7 @@ public class WaveSpawner : MonoBehaviour
             Mathf.Lerp(1f, 1.12f, progress));
     }
 
+    // Sinh Soul Swallower từ prefab; nếu chưa có prefab thì tạo hình tạm bằng code.
     void SpawnSoulSwallowers(int count)
     {
         if (count <= 0)
@@ -143,12 +152,14 @@ public class WaveSpawner : MonoBehaviour
         }
     }
 
+    // Mini boss dùng Brute Mutant làm hình tạm và xuất hiện mỗi 5 wave.
     void SpawnMiniBoss()
     {
         GameObject source = bruteMutantPrefab != null ? bruteMutantPrefab : glitchRunnerPrefab;
         SpawnElite(source, false);
     }
 
+    // Boss cuối xuất hiện đúng một lần khi đồng hồ về 00:00.
     void SpawnFinalBoss()
     {
         GameObject source = bruteMutantPrefab != null ? bruteMutantPrefab : glitchRunnerPrefab;
@@ -156,6 +167,7 @@ public class WaveSpawner : MonoBehaviour
         Debug.Log("=== FINAL BOSS HAS APPEARED ===");
     }
 
+    // Tạo một quái elite tại SpawnPoint ngẫu nhiên.
     void SpawnElite(GameObject source, bool finalBoss)
     {
         if (source == null || spawnPoints == null || spawnPoints.Length == 0)
@@ -166,6 +178,7 @@ public class WaveSpawner : MonoBehaviour
         StartCoroutine(ConfigureEliteNextFrame(elite, finalBoss));
     }
 
+    // Chờ chỉ số gốc được khởi tạo rồi áp dụng bộ chỉ số mini boss hoặc boss cuối.
     IEnumerator ConfigureEliteNextFrame(GameObject enemyObject, bool finalBoss)
     {
         yield return null;

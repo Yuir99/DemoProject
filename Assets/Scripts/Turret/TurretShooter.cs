@@ -1,7 +1,9 @@
 using UnityEngine;
 
+// Khả năng chiến đấu của trụ sau khi trụ đạt ít nhất 3 linh hồn.
 public class TurretShooter : MonoBehaviour
 {
+    // Các chỉ số tầm bắn, nhịp bắn, tốc độ đạn và sát thương đạn.
     public float range = 6f;
     public float fireRate = 0.65f;
     public float bulletSpeed = 10f;
@@ -11,6 +13,7 @@ public class TurretShooter : MonoBehaviour
     private GameObject bulletPrefab;
     private float nextFireTime;
 
+    // Khi trụ hoạt động và đã hết thời gian chờ, tìm quái gần nhất để bắn.
     void Update()
     {
         if (!isActive || Time.time < nextFireTime)
@@ -24,11 +27,13 @@ public class TurretShooter : MonoBehaviour
         nextFireTime = Time.time + fireRate;
     }
 
+    // TurretNode gọi hàm này khi trụ đạt mốc 3 linh hồn.
     public void Activate()
     {
         isActive = true;
     }
 
+    // Duyệt tất cả quái và chọn quái gần nhất nằm trong range.
     EnemyBase FindNearestEnemy()
     {
         EnemyBase[] enemies = FindObjectsByType<EnemyBase>(FindObjectsSortMode.None);
@@ -51,6 +56,7 @@ public class TurretShooter : MonoBehaviour
         return nearest;
     }
 
+    // Tạo viên đạn, đặt sát thương và cho đạn bay về phía mục tiêu.
     void Shoot(EnemyBase target)
     {
         EnsureBulletPrefab();
@@ -72,6 +78,7 @@ public class TurretShooter : MonoBehaviour
         Destroy(bullet, 3f);
     }
 
+    // Dùng chung Bullet prefab của người chơi để chưa cần tạo prefab đạn riêng cho trụ.
     void EnsureBulletPrefab()
     {
         if (bulletPrefab != null)
@@ -82,6 +89,7 @@ public class TurretShooter : MonoBehaviour
             bulletPrefab = soulGun.bulletPrefab;
     }
 
+    // Vẽ vòng tròn tầm bắn trong Scene khi chọn trụ.
     void OnDrawGizmosSelected()
     {
         Gizmos.color = new Color(1f, 0.85f, 0.2f, 0.35f);

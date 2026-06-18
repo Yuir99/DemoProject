@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
+// Quản lý linh hồn được nạp vào trụ, các mốc tiến hóa và nguy cơ Overmutate.
 public class TurretNode : MonoBehaviour
 {
     [Header("Current Souls")]
@@ -26,6 +27,7 @@ public class TurretNode : MonoBehaviour
     public Image[] soulSlots;
     public GameObject warningIcon;
 
+    // Màu đại diện cho từng loại linh hồn và slot chưa được sử dụng.
     private readonly Color colorSpeed = new Color(0f, 1f, 0.5f);
     private readonly Color colorPower = new Color(1f, 0.2f, 0.2f);
     private readonly Color colorDefense = new Color(0.2f, 0.5f, 1f);
@@ -33,8 +35,11 @@ public class TurretNode : MonoBehaviour
 
     private SpriteRenderer bodySprite;
     private TurretShooter shooter;
+
+    // Tổng linh hồn hiện có trong cả ba nhóm.
     private int TotalSouls => speedSouls + powerSouls + defenseSouls;
 
+    // Tìm phần hình ảnh của trụ, bảo đảm có TurretShooter và tự nối các ô UI.
     void Awake()
     {
         bodySprite = transform.Find("Body")?.GetComponent<SpriteRenderer>();
@@ -49,12 +54,14 @@ public class TurretNode : MonoBehaviour
             canvas.worldCamera = Camera.main;
     }
 
+    // Hiển thị trạng thái ban đầu của thân trụ và các slot linh hồn.
     void Start()
     {
         UpdateBodySprite();
         UpdateSoulUI();
     }
 
+    // Nhận một linh hồn từ SoulGun, cập nhật UI và kiểm tra các mốc 3/6/9.
     public void ReceiveSoul(SoulType type)
     {
         if (TotalSouls >= 9)
@@ -88,6 +95,7 @@ public class TurretNode : MonoBehaviour
             CheckOvermutate();
     }
 
+    // Đổi trạng thái trụ khi sử dụng thuần Speed Soul hoặc thuần Power Soul.
     void CheckMilestones()
     {
         if (bodySprite == null)
@@ -128,6 +136,7 @@ public class TurretNode : MonoBehaviour
         }
     }
 
+    // Ở mốc 9, trụ trộn từ hai loại linh hồn trở lên sẽ biến thành quái.
     void CheckOvermutate()
     {
         int typesUsed = (speedSouls > 0 ? 1 : 0)
@@ -145,6 +154,7 @@ public class TurretNode : MonoBehaviour
         }
     }
 
+    // Tạo hiệu ứng rung, sinh Mutated Abomination rồi xóa trụ cũ.
     IEnumerator OvermutateSequence()
     {
         float timer = 0f;
@@ -169,6 +179,7 @@ public class TurretNode : MonoBehaviour
         Destroy(gameObject);
     }
 
+    // Tô màu các slot theo số Speed, Power, Defense Soul đang được nạp.
     void UpdateSoulUI()
     {
         if (soulSlots == null || soulSlots.Length == 0)
@@ -199,12 +210,14 @@ public class TurretNode : MonoBehaviour
             warningIcon.SetActive(TotalSouls >= 5 && typesUsed >= 2);
     }
 
+    // Đổi màu một slot nếu slot đó tồn tại.
     void SetSlotColor(int index, Color color)
     {
         if (soulSlots[index] != null)
             soulSlots[index].color = color;
     }
 
+    // Đặt sprite cơ bản và bảo đảm thân trụ không bị trong suốt.
     void UpdateBodySprite()
     {
         if (bodySprite == null)
@@ -217,6 +230,7 @@ public class TurretNode : MonoBehaviour
             bodySprite.color = Color.white;
     }
 
+    // Ưu tiên sprite được gán; nếu chưa có sprite thì dùng màu tạm.
     void ApplySpriteOrColor(Sprite sprite, Color fallbackColor)
     {
         if (bodySprite == null)
@@ -233,6 +247,7 @@ public class TurretNode : MonoBehaviour
         }
     }
 
+    // Tự tìm Slot_0 đến Slot_8 và WarningIcon trong các object con.
     void AutoWireUI()
     {
         List<Image> slots = new List<Image>();
@@ -257,6 +272,7 @@ public class TurretNode : MonoBehaviour
         }
     }
 
+    // Lấy phần số trong tên Slot_0, Slot_1... để sắp xếp đúng thứ tự.
     int GetSlotIndex(string slotName)
     {
         string number = slotName.Replace("Slot_", "");
@@ -264,6 +280,7 @@ public class TurretNode : MonoBehaviour
         return int.TryParse(number, out index) ? index : 999;
     }
 
+    // Vẽ vòng tròn tham khảo quanh trụ trong Scene.
     void OnDrawGizmosSelected()
     {
         Gizmos.color = new Color(0.5f, 0.5f, 1f, 0.3f);

@@ -1,5 +1,6 @@
 using UnityEngine;
 
+// Xử lý di chuyển, xoay theo chuột và đặt trụ của người chơi.
 public class PlayerController : MonoBehaviour
 {
     [Header("Movement")]
@@ -11,11 +12,13 @@ public class PlayerController : MonoBehaviour
     private Rigidbody2D rb;
     private Vector2 moveInput;
 
+    // Lấy Rigidbody2D để di chuyển bằng hệ thống vật lý 2D.
     void Start()
     {
         rb = GetComponent<Rigidbody2D>();
     }
 
+    // Đọc bàn phím, xử lý đặt trụ và cập nhật hướng nhìn mỗi frame.
     void Update()
     {
         moveInput.x = Input.GetAxisRaw("Horizontal");
@@ -25,6 +28,7 @@ public class PlayerController : MonoBehaviour
         RotateTowardMouse();
     }
 
+    // Di chuyển trong FixedUpdate để Rigidbody2D hoạt động ổn định.
     void FixedUpdate()
     {
         if (rb == null)
@@ -33,11 +37,13 @@ public class PlayerController : MonoBehaviour
         rb.MovePosition(rb.position + moveInput.normalized * moveSpeed * Time.fixedDeltaTime);
     }
 
+    // Được hệ thống nâng cấp gọi để cộng thêm tốc độ chạy.
     public void UpgradeMoveSpeed(float amount)
     {
         moveSpeed += amount;
     }
 
+    // Khi nhấn E, tạo một trụ tại vị trí con trỏ chuột trong thế giới game.
     void HandleTurretPlacement()
     {
         if (!Input.GetKeyDown(KeyCode.E) || turretPrefab == null)
@@ -54,6 +60,7 @@ public class PlayerController : MonoBehaviour
         Debug.Log("Placed turret at " + spawnPosition);
     }
 
+    // Chuyển vị trí chuột từ màn hình sang thế giới rồi xoay nhân vật về hướng đó.
     void RotateTowardMouse()
     {
         if (Camera.main == null)

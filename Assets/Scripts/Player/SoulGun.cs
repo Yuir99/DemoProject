@@ -1,5 +1,6 @@
 using UnityEngine;
 
+// Quản lý bắn đạn, hút linh hồn, kho linh hồn và nạp linh hồn vào trụ.
 public class SoulGun : MonoBehaviour
 {
     [Header("Shooting")]
@@ -26,11 +27,13 @@ public class SoulGun : MonoBehaviour
     private float nextFireTime = 0f;
     private int selectedSoulType = 1;
 
+    // Dữ liệu chỉ đọc để HUD hiển thị số linh hồn và loại đang chọn.
     public int SpeedSouls => speedSouls;
     public int PowerSouls => powerSouls;
     public int DefenseSouls => defenseSouls;
     public SoulType SelectedSoulType => GetSelectedSoulType();
 
+    // Các hàm nâng cấp được LevelUpUpgradeUI gọi khi người chơi chọn phần thưởng.
     public void UpgradeFireRate(float multiplier)
     {
         fireRate = Mathf.Max(0.08f, fireRate * multiplier);
@@ -52,6 +55,7 @@ public class SoulGun : MonoBehaviour
         suckForce += forceAmount;
     }
 
+    // Kiểm tra toàn bộ thao tác chiến đấu của người chơi mỗi frame.
     void Update()
     {
         HandleShooting();
@@ -60,6 +64,7 @@ public class SoulGun : MonoBehaviour
         HandleFeedTurret();
     }
 
+    // Tự động bắn hoặc bắn khi nhận nút Fire1, có giới hạn bởi fireRate.
     void HandleShooting()
     {
         bool wantsToShoot = autoFire || Input.GetButton("Fire1");
@@ -70,6 +75,7 @@ public class SoulGun : MonoBehaviour
         }
     }
 
+    // Tạo đạn tại GunTip và cho đạn bay về vị trí chuột.
     void ShootBullet()
     {
         if (bulletPrefab == null || gunTip == null)
@@ -96,6 +102,7 @@ public class SoulGun : MonoBehaviour
         Destroy(newBullet, 3f);
     }
 
+    // Khi giữ chuột phải hoặc Q, kéo các linh hồn trong suckRange về người chơi.
     void HandleSoulSuck()
     {
         bool isSucking = Input.GetMouseButton(1) || (allowQToSuck && Input.GetKey(KeyCode.Q));
@@ -123,6 +130,7 @@ public class SoulGun : MonoBehaviour
         }
     }
 
+    // Cộng linh hồn vừa hút vào đúng ngăn Speed, Power hoặc Defense.
     void CollectSoul(SoulType type)
     {
         switch (type)
@@ -141,6 +149,7 @@ public class SoulGun : MonoBehaviour
         Debug.Log($"Collected {type}. Speed={speedSouls} Power={powerSouls} Defense={defenseSouls}");
     }
 
+    // Phím 1, 2, 3 lần lượt chọn Speed, Power và Defense Soul.
     void HandleSoulTypeSelect()
     {
         if (Input.GetKeyDown(KeyCode.Alpha1))
@@ -151,6 +160,7 @@ public class SoulGun : MonoBehaviour
             selectedSoulType = 3;
     }
 
+    // Khi nhấn F, tìm trụ dưới con trỏ hoặc trên hướng ngắm rồi nạp một linh hồn.
     void HandleFeedTurret()
     {
         if (!Input.GetKeyDown(feedTurretKey) || Camera.main == null)
@@ -187,6 +197,7 @@ public class SoulGun : MonoBehaviour
         Debug.Log($"Fed 1 {type} soul into turret.");
     }
 
+    // Chuyển số lựa chọn nội bộ thành enum SoulType.
     SoulType GetSelectedSoulType()
     {
         switch (selectedSoulType)
@@ -200,6 +211,7 @@ public class SoulGun : MonoBehaviour
         }
     }
 
+    // Trả về số lượng hiện có của một loại linh hồn.
     int GetSoulCount(SoulType type)
     {
         switch (type)
@@ -215,6 +227,7 @@ public class SoulGun : MonoBehaviour
         }
     }
 
+    // Trừ một linh hồn sau khi nạp thành công vào trụ.
     void DeductSoul(SoulType type)
     {
         switch (type)
@@ -231,6 +244,7 @@ public class SoulGun : MonoBehaviour
         }
     }
 
+    // Vẽ tầm hút linh hồn trong Scene để dễ cân chỉnh.
     void OnDrawGizmosSelected()
     {
         Gizmos.color = Color.green;
@@ -238,4 +252,5 @@ public class SoulGun : MonoBehaviour
     }
 }
 
+// Ba loại linh hồn hiện có trong trò chơi.
 public enum SoulType { Speed, Power, Defense }
