@@ -1,44 +1,52 @@
 using UnityEngine;
 
-// Đại diện cho một linh hồn rơi ra sau khi quái bị tiêu diệt.
-// Script đặt màu theo loại linh hồn và tạo hiệu ứng lơ lửng.
 public class SoulPickup : MonoBehaviour
 {
-    [Header("Loại linh hồn")]
+    [Header("Soul Type")]
     public SoulType soulType = SoulType.Speed;
+    public Sprite speedSprite;
+    public Sprite powerSprite;
+    public Sprite defenseSprite;
 
-    [Header("Hiệu ứng lơ lửng")]
-    public float floatSpeed = 1f;
-    public float floatHeight = 0.2f;
+    [Header("Hover Animation")]
+    public float floatSpeed = 2.4f;
+    public float floatHeight = 0.12f;
+    public float pulseAmount = 0.06f;
 
-    // Vị trí ban đầu dùng làm tâm của chuyển động lên xuống.
     private Vector3 startPos;
+    private Vector3 baseScale;
+    private float phaseOffset;
 
-    // Lưu vị trí và tô màu ngay khi linh hồn xuất hiện.
     void Start()
     {
         startPos = transform.position;
-
-        // Mỗi loại linh hồn có một màu nhận diện riêng.
-        SpriteRenderer sr = GetComponent<SpriteRenderer>();
-        switch (soulType)
-        {
-            case SoulType.Speed:
-                sr.color = new Color(0f, 1f, 0.5f);
-                break;
-            case SoulType.Power:
-                sr.color = new Color(1f, 0.2f, 0.2f);
-                break;
-            case SoulType.Defense:
-                sr.color = new Color(0.2f, 0.5f, 1f);
-                break;
-        }
+        baseScale = transform.localScale;
+        phaseOffset = Random.value * Mathf.PI * 2f;
+        ApplyVisual();
     }
 
-    // Dùng hàm sin để di chuyển linh hồn lên xuống mềm mại theo thời gian.
     void Update()
     {
-        float newY = startPos.y + Mathf.Sin(Time.time * floatSpeed) * floatHeight;
-        transform.position = new Vector3(startPos.x, newY, startPos.z);
+        float wave = Mathf.Sin(Time.time * floatSpeed + phaseOffset);
+        transform.position = startPos + Vector3.up * (wave * floatHeight);
+        transform.localScale = baseScale * (1f + wave * pulseAmount);
+    }
+
+    void ApplyVisual()
+    {
+        SpriteRenderer renderer = GetComponent<SpriteRenderer>();
+        if (renderer == null)
+            return;
+
+        renderer.color = Color.white;
+        Sprite selected = soulType switch
+        {
+            SoulType.Power => powerSprite,
+            SoulType.Defense => defenseSprite,
+            _ => speedSprite
+        };
+
+        if (selected != null)
+            renderer.sprite = selected;
     }
 }

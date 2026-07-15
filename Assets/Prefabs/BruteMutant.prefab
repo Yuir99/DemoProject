@@ -30,7 +30,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 8.24617, y: -1.4125, z: 0}
-  m_LocalScale: {x: 1.5, y: 1.5, z: 1}
+  m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
@@ -84,8 +84,8 @@ SpriteRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 4
   m_MaskInteraction: 0
-  m_Sprite: {fileID: 5434599504702999412, guid: ce915ac6ba110624b946590881c9a6a4, type: 3}
-  m_Color: {r: 0.8, g: 0.26666668, b: 0, a: 1}
+  m_Sprite: {fileID: 21300000, guid: 3f7a1c2d4e5f67890123456789abc007, type: 3}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0
@@ -151,12 +151,12 @@ CircleCollider2D:
   m_CallbackLayers:
     serializedVersion: 2
     m_Bits: 4294967295
-  m_IsTrigger: 1
+  m_IsTrigger: 0
   m_UsedByEffector: 0
   m_CompositeOperation: 0
   m_CompositeOrder: 0
   m_Offset: {x: 0, y: 0}
-  m_Radius: 0.5
+  m_Radius: 0.75
 --- !u!114 &8781575608972636339
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -173,7 +173,18 @@ MonoBehaviour:
   currentHP: 0
   moveSpeed: 2
   damage: 10
+  coreAttackInterval: 1
   soulDropType: 0
   soulDropCount: 1
   soulPrefab: {fileID: 8257274693959896784, guid: 58678362167a0b24180517dac5716eb8, type: 3}
   xpReward: 5
+  walkSprites:
+  - {fileID: 21300000, guid: d95faabfa87442a3a835b743e2ec4694, type: 3}
+  - {fileID: 21300000, guid: c909d7ae56c84354bc83147e3b90e426, type: 3}
+  - {fileID: 21300000, guid: e34b01efa38846509fb24a0496b4fbef, type: 3}
+  deathSprites:
+  - {fileID: 21300000, guid: 09b40a8105814f7cac99386751e32019, type: 3}
+  - {fileID: 21300000, guid: c1e4c514fbbe4f4e9abdded750e4a1bf, type: 3}
+  - {fileID: 21300000, guid: cc3be4d713684b2aaabdcd0cf6de2a04, type: 3}
+  walkAnimationFps: 5
+  deathFrameDuration: 0.16

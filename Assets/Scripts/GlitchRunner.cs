@@ -8,32 +8,30 @@ public class GlitchRunner : EnemyBase
 
     protected override void Start()
     {
-        base.Start();
-
         maxHP = 25f;
-        currentHP = maxHP;
         moveSpeed = 3.6f;
         damage = 5f;
         soulDropType = SoulType.Speed;
         soulDropCount = 1;
         xpReward = 3f;
 
+        base.Start();
+
         spriteRenderer = GetComponent<SpriteRenderer>();
         if (spriteRenderer != null)
         {
-            baseColor = new Color(0.5f, 1f, 0.5f, 1f);
+            baseColor = spriteRenderer.color;
             spriteRenderer.enabled = true;
             spriteRenderer.color = baseColor;
         }
-
-        CircleCollider2D hitbox = GetComponent<CircleCollider2D>();
-        if (hitbox != null)
-            hitbox.radius = 0.38f;
     }
 
     protected override void Update()
     {
         base.Update();
+        if (IsDead)
+            return;
+
         UpdateVisualFlicker();
     }
 
@@ -48,7 +46,7 @@ public class GlitchRunner : EnemyBase
         {
             flickerTimer -= Time.deltaTime;
             float pulse = Mathf.PingPong(Time.time * 28f, 1f);
-            spriteRenderer.color = Color.Lerp(baseColor, new Color(0.8f, 1f, 0.95f, 0.72f), pulse);
+            spriteRenderer.color = Color.Lerp(baseColor, new Color(0.72f, 0.95f, 1f, 0.85f), pulse);
             return;
         }
 

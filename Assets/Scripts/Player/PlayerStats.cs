@@ -75,6 +75,10 @@ public class PlayerStats : MonoBehaviour
     void Die()
     {
         Debug.Log("Game over: player died.");
-        Time.timeScale = 0f;
+
+        if (GameFlowManager.Instance != null)
+            GameFlowManager.Instance.LoseGame();
+        else
+            Time.timeScale = 0f;
     }
 }

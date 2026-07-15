@@ -25,8 +25,8 @@ public class WaveSpawner : MonoBehaviour
 
     void Start()
     {
-        if (GameFlowManager.Instance != null && GameFlowManager.Instance.GameIsRunning)
-            BeginMode(GameFlowManager.Instance.CurrentMode);
+        if (GameFlowManager.Instance == null)
+            BeginMode(GameMode.Timed);
     }
 
     void Update()
@@ -131,51 +131,7 @@ public class WaveSpawner : MonoBehaviour
 
     void SpawnSoulSwallowers(int count)
     {
-        if (count <= 0)
-            return;
-
-        if (soulSwallowerPrefab != null)
-        {
-            SpawnGroup(soulSwallowerPrefab, count);
-            return;
-        }
-
-        if (spawnPoints == null || spawnPoints.Length == 0)
-            return;
-
-        for (int i = 0; i < count; i++)
-        {
-            Transform spawnPoint = spawnPoints[Random.Range(0, spawnPoints.Length)];
-            GameObject swallower = new GameObject("SoulSwallower");
-            swallower.layer = LayerMask.NameToLayer("Enemy");
-            swallower.transform.position = spawnPoint.position + (Vector3)Random.insideUnitCircle * 1.5f;
-            swallower.transform.localScale = Vector3.one * 0.85f;
-
-            SpriteRenderer renderer = swallower.AddComponent<SpriteRenderer>();
-            SpriteRenderer sourceRenderer = bruteMutantPrefab == null ? null : bruteMutantPrefab.GetComponent<SpriteRenderer>();
-            if (sourceRenderer != null)
-            {
-                renderer.sprite = sourceRenderer.sprite;
-                renderer.sharedMaterial = sourceRenderer.sharedMaterial;
-                renderer.sortingOrder = sourceRenderer.sortingOrder;
-            }
-
-            Rigidbody2D body = swallower.AddComponent<Rigidbody2D>();
-            body.gravityScale = 0f;
-            body.collisionDetectionMode = CollisionDetectionMode2D.Continuous;
-            body.constraints = RigidbodyConstraints2D.FreezeRotation;
-
-            CircleCollider2D collider = swallower.AddComponent<CircleCollider2D>();
-            collider.isTrigger = true;
-            collider.radius = 0.48f;
-
-            SoulSwallower enemy = swallower.AddComponent<SoulSwallower>();
-            EnemyBase sourceEnemy = bruteMutantPrefab == null ? null : bruteMutantPrefab.GetComponent<EnemyBase>();
-            if (sourceEnemy != null)
-                enemy.soulPrefab = sourceEnemy.soulPrefab;
-
-            StartCoroutine(ApplyTimeDifficulty(swallower));
-        }
+        SpawnGroup(soulSwallowerPrefab, count);
     }
 
     void SpawnMiniBoss()

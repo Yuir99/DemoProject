@@ -18,7 +18,9 @@ public class TurretShooter : MonoBehaviour
 
     [Header("Visuals")]
     public Sprite idleSprite;
+    public Sprite[] idleSprites;
     public Sprite[] firingSprites;
+    public float idleAnimationFps = 3f;
     public float muzzleOffset = 0.45f;
     public float fireFrameTime = 0.05f;
     public Sprite projectileSprite;
@@ -35,6 +37,7 @@ public class TurretShooter : MonoBehaviour
 
     private float nextFireTime;
     private float fireAnimationTimer;
+    private float idleAnimationTimer;
     private Sprite fallbackIdleSprite;
 
     void Awake()
@@ -45,7 +48,7 @@ public class TurretShooter : MonoBehaviour
 
     void Update()
     {
-        UpdateFireAnimation();
+        UpdateVisualAnimation();
 
         if (!isActive)
             return;
@@ -54,7 +57,8 @@ public class TurretShooter : MonoBehaviour
         if (target == null)
             return;
 
-        AimAt(target.transform.position);
+        if (attackMode != TurretAttackMode.SonicPulse)
+            AimAt(target.transform.position);
 
         if (Time.time < nextFireTime)
             return;
@@ -70,14 +74,22 @@ public class TurretShooter : MonoBehaviour
 
     public void ConfigureVisuals(SpriteRenderer renderer, Sprite idle, Sprite[] fireSprites)
     {
+        ConfigureVisuals(renderer, idle != null ? new[] { idle } : null, fireSprites);
+    }
+
+    public void ConfigureVisuals(SpriteRenderer renderer, Sprite[] newIdleSprites, Sprite[] fireSprites)
+    {
         if (renderer != null)
         {
             turretRenderer = renderer;
             rotatingPart = renderer.transform;
         }
 
-        if (idle != null)
-            idleSprite = idle;
+        if (newIdleSprites != null && newIdleSprites.Length > 0)
+        {
+            idleSprites = newIdleSprites;
+            idleSprite = newIdleSprites[0];
+        }
 
         if (fireSprites != null && fireSprites.Length > 0)
             firingSprites = fireSprites;
@@ -121,20 +133,7 @@ public class TurretShooter : MonoBehaviour
             turretRenderer = GetComponent<SpriteRenderer>();
 
         if (muzzlePoint == null && rotatingPart != null)
-        {
-            Transform existingMuzzle = rotatingPart.Find("MuzzlePoint");
-            if (existingMuzzle != null)
-            {
-                muzzlePoint = existingMuzzle;
-            }
-            else
-            {
-                GameObject createdMuzzle = new GameObject("MuzzlePoint");
-                muzzlePoint = createdMuzzle.transform;
-                muzzlePoint.SetParent(rotatingPart, false);
-                muzzlePoint.localPosition = Vector3.up * muzzleOffset;
-            }
-        }
+            muzzlePoint = rotatingPart.Find("MuzzlePoint");
 
         if (turretRenderer != null && fallbackIdleSprite == null)
             fallbackIdleSprite = turretRenderer.sprite;
@@ -272,32 +271,50 @@ public class TurretShooter : MonoBehaviour
 
     void StartFireAnimation()
     {
-        if (turretRenderer == null || firingSprites == null || firingSprites.Length == 0)
+        if (turretRenderer == null)
             return;
+
+        if (firingSprites == null || firingSprites.Length == 0)
+        {
+            if (attackMode != TurretAttackMode.SonicPulse)
+                StartCoroutine(PulseFlash());
+            return;
+        }
 
         fireAnimationTimer = fireFrameTime * firingSprites.Length;
         turretRenderer.sprite = firingSprites[0];
     }
 
-    void UpdateFireAnimation()
+    void UpdateVisualAnimation()
     {
-        if (turretRenderer == null || fireAnimationTimer <= 0f)
+        if (turretRenderer == null)
             return;
 
-        fireAnimationTimer -= Time.deltaTime;
-
-        if (fireAnimationTimer <= 0f)
+        if (fireAnimationTimer > 0f)
         {
-            ApplyIdleSprite();
+            fireAnimationTimer -= Time.deltaTime;
+            if (fireAnimationTimer <= 0f)
+            {
+                ApplyIdleSprite();
+                return;
+            }
+
+            if (firingSprites == null || firingSprites.Length == 0)
+                return;
+
+            float elapsed = (fireFrameTime * firingSprites.Length) - fireAnimationTimer;
+            int fireFrame = Mathf.Clamp(Mathf.FloorToInt(elapsed / fireFrameTime), 0, firingSprites.Length - 1);
+            turretRenderer.sprite = firingSprites[fireFrame];
             return;
         }
 
-        if (firingSprites == null || firingSprites.Length == 0)
+        if (idleSprites == null || idleSprites.Length == 0)
             return;
 
-        float elapsed = (fireFrameTime * firingSprites.Length) - fireAnimationTimer;
-        int frame = Mathf.Clamp(Mathf.FloorToInt(elapsed / fireFrameTime), 0, firingSprites.Length - 1);
-        turretRenderer.sprite = firingSprites[frame];
+        idleAnimationTimer += Time.deltaTime;
+        int idleFrame = Mathf.FloorToInt(idleAnimationTimer * Mathf.Max(1f, idleAnimationFps)) % idleSprites.Length;
+        if (idleSprites[idleFrame] != null)
+            turretRenderer.sprite = idleSprites[idleFrame];
     }
 
     void ApplyIdleSprite()
@@ -305,7 +322,9 @@ public class TurretShooter : MonoBehaviour
         if (turretRenderer == null)
             return;
 
-        if (idleSprite != null)
+        if (idleSprites != null && idleSprites.Length > 0 && idleSprites[0] != null)
+            turretRenderer.sprite = idleSprites[0];
+        else if (idleSprite != null)
             turretRenderer.sprite = idleSprite;
         else if (fallbackIdleSprite != null)
             turretRenderer.sprite = fallbackIdleSprite;

@@ -1,7 +1,5 @@
 using UnityEngine;
 
-// Quái Nuốt Hồn: ưu tiên săn linh hồn trên bản đồ thay vì đi thẳng tới Lõi.
-// Mỗi linh hồn bị nuốt sẽ hồi máu, tăng kích thước và tăng sát thương cho nó.
 public class SoulSwallower : EnemyBase
 {
     [Header("Soul Swallower")]
@@ -10,35 +8,29 @@ public class SoulSwallower : EnemyBase
     public float healPerSoul = 18f;
     public float maxGrowthBonus = 0.45f;
 
-    // Trạng thái nội bộ dùng để theo dõi mục tiêu và số linh hồn đã ăn.
     private SoulPickup soulTarget;
     private int consumedSouls;
     private float nextSearchTime;
     private Vector3 baseScale;
 
-    // Thiết lập chỉ số, loại linh hồn rơi ra và màu tím tạm thời.
     protected override void Start()
     {
-        base.Start();
-
         maxHP = 90f;
-        currentHP = maxHP;
         moveSpeed = 2.15f;
         damage = 12f;
         soulDropType = SoulType.Defense;
         soulDropCount = 1;
         xpReward = 10f;
-        baseScale = transform.localScale;
 
-        SpriteRenderer renderer = GetComponent<SpriteRenderer>();
-        if (renderer != null)
-            renderer.color = new Color(0.72f, 0.25f, 0.95f);
+        base.Start();
+        baseScale = transform.localScale;
     }
 
-    // Mỗi 0.3 giây tìm lại linh hồn gần nhất.
-    // Nếu không có linh hồn, gọi EnemyBase để tiếp tục tấn công Lõi.
     protected override void Update()
     {
+        if (IsDead)
+            return;
+
         if (Time.time >= nextSearchTime)
         {
             FindNearestSoul();
@@ -48,6 +40,7 @@ public class SoulSwallower : EnemyBase
         if (soulTarget != null)
         {
             MoveToward(soulTarget.transform.position);
+            ClampToMapBounds();
             if (Vector2.Distance(transform.position, soulTarget.transform.position) <= consumeDistance)
                 ConsumeSoul();
             return;
@@ -56,7 +49,6 @@ public class SoulSwallower : EnemyBase
         base.Update();
     }
 
-    // Duyệt các SoulPickup trong Scene và chọn linh hồn gần nhất trong tầm cảm nhận.
     void FindNearestSoul()
     {
         SoulPickup[] souls = FindObjectsByType<SoulPickup>(FindObjectsSortMode.None);
@@ -79,14 +71,12 @@ public class SoulSwallower : EnemyBase
         soulTarget = nearest;
     }
 
-    // Di chuyển trực tiếp về một điểm với tốc độ hiện tại của quái.
     void MoveToward(Vector3 destination)
     {
         Vector2 direction = (destination - transform.position).normalized;
         transform.Translate(direction * moveSpeed * Time.deltaTime, Space.World);
     }
 
-    // Xóa linh hồn, hồi máu và tăng sức mạnh sau khi đến đủ gần.
     void ConsumeSoul()
     {
         if (soulTarget == null)
@@ -102,10 +92,9 @@ public class SoulSwallower : EnemyBase
         damage = 12f + consumedSouls * 1.5f;
     }
 
-    // Vẽ vòng tròn tầm cảm nhận trong Scene khi chọn quái để dễ cân chỉnh.
     void OnDrawGizmosSelected()
     {
-        Gizmos.color = new Color(0.75f, 0.25f, 1f, 0.35f);
+        Gizmos.color = new Color(0.2f, 0.85f, 1f, 0.35f);
         Gizmos.DrawWireSphere(transform.position, soulSenseRange);
     }
 }

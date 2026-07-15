@@ -230,12 +230,12 @@ CircleCollider2D:
   m_CallbackLayers:
     serializedVersion: 2
     m_Bits: 4294967295
-  m_IsTrigger: 1
+  m_IsTrigger: 0
   m_UsedByEffector: 0
   m_CompositeOperation: 0
   m_CompositeOrder: 0
-  m_Offset: {x: 0, y: 0}
-  m_Radius: 0.5
+  m_Offset: {x: 0, y: -0.014714435}
+  m_Radius: 0.20900626
 --- !u!212 &490121513
 SpriteRenderer:
   serializedVersion: 2
@@ -305,7 +305,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 2, y: 2, z: 1}
+  m_LocalScale: {x: 4.5, y: 4.5, z: 4.5}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
@@ -704,7 +704,15 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8802267589661577392, guid: ffdd83cafd7c4ea4cae6ebd376acf7c5, type: 3}
       propertyPath: m_LocalScale.x
-      value: 1.6
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 8802267589661577392, guid: ffdd83cafd7c4ea4cae6ebd376acf7c5, type: 3}
+      propertyPath: m_LocalScale.y
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 8802267589661577392, guid: ffdd83cafd7c4ea4cae6ebd376acf7c5, type: 3}
+      propertyPath: m_LocalScale.z
+      value: 2
       objectReference: {fileID: 0}
     - target: {fileID: 8802267589661577392, guid: ffdd83cafd7c4ea4cae6ebd376acf7c5, type: 3}
       propertyPath: m_LocalPosition.x

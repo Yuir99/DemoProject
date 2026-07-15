@@ -87,7 +87,7 @@ SpriteRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 5
   m_MaskInteraction: 0
-  m_Sprite: {fileID: 902892910, guid: 96105ebdbc880cb42a1eec1162e88642, type: 3}
+  m_Sprite: {fileID: 3100000000, guid: a113b4c5d6e748f99001aabbccdde001, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
@@ -173,6 +173,30 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerController
   moveSpeed: 5
+  spriteRenderer: {fileID: 798095341124127215}
+  downSprites:
+  - {fileID: 3100000000, guid: a113b4c5d6e748f99001aabbccdde001, type: 3}
+  - {fileID: 3100000001, guid: a113b4c5d6e748f99001aabbccdde001, type: 3}
+  - {fileID: 3100000002, guid: a113b4c5d6e748f99001aabbccdde001, type: 3}
+  - {fileID: 3100000003, guid: a113b4c5d6e748f99001aabbccdde001, type: 3}
+  leftSprites:
+  - {fileID: 3100000004, guid: a113b4c5d6e748f99001aabbccdde001, type: 3}
+  - {fileID: 3100000005, guid: a113b4c5d6e748f99001aabbccdde001, type: 3}
+  - {fileID: 3100000006, guid: a113b4c5d6e748f99001aabbccdde001, type: 3}
+  - {fileID: 3100000007, guid: a113b4c5d6e748f99001aabbccdde001, type: 3}
+  rightSprites:
+  - {fileID: 3100000008, guid: a113b4c5d6e748f99001aabbccdde001, type: 3}
+  - {fileID: 3100000009, guid: a113b4c5d6e748f99001aabbccdde001, type: 3}
+  - {fileID: 3100000010, guid: a113b4c5d6e748f99001aabbccdde001, type: 3}
+  - {fileID: 3100000011, guid: a113b4c5d6e748f99001aabbccdde001, type: 3}
+  upSprites:
+  - {fileID: 3100000012, guid: a113b4c5d6e748f99001aabbccdde001, type: 3}
+  - {fileID: 3100000013, guid: a113b4c5d6e748f99001aabbccdde001, type: 3}
+  - {fileID: 3100000014, guid: a113b4c5d6e748f99001aabbccdde001, type: 3}
+  - {fileID: 3100000015, guid: a113b4c5d6e748f99001aabbccdde001, type: 3}
+  walkAnimationFps: 8
+  muzzlePoint: {fileID: 9073356989620378536}
+  muzzleDistance: 0.42
   turretPrefab: {fileID: 3606911698026608826, guid: c544498a3b1a6484e82ae687b34ca22a, type: 3}
 --- !u!114 &8581344028448780632
 MonoBehaviour:

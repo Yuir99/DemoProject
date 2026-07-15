@@ -30,7 +30,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 8.09766, y: -1.25126, z: 0}
-  m_LocalScale: {x: 0.3, y: 0.3, z: 1}
+  m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
@@ -84,8 +84,8 @@ SpriteRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 3
   m_MaskInteraction: 0
-  m_Sprite: {fileID: 10913, guid: 0000000000000000f000000000000000, type: 0}
-  m_Color: {r: 0.2, g: 0.6, b: 1, a: 1}
+  m_Sprite: {fileID: 21300000, guid: 6c7a7dc8e7384f9f96810491577a509d, type: 3}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0
@@ -156,7 +156,7 @@ CircleCollider2D:
   m_CompositeOperation: 0
   m_CompositeOrder: 0
   m_Offset: {x: 0, y: 0}
-  m_Radius: 0.15
+  m_Radius: 0.28
 --- !u!114 &7048752710257079292
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -170,5 +170,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::SoulPickup
   soulType: 2
-  floatSpeed: 1
-  floatHeight: 0.2
+  speedSprite: {fileID: 21300000, guid: e8cc9193dbbe467e88938efa605b473e, type: 3}
+  powerSprite: {fileID: 21300000, guid: b0621378478e47db8b4f51f9b34c1ce8, type: 3}
+  defenseSprite: {fileID: 21300000, guid: 6c7a7dc8e7384f9f96810491577a509d, type: 3}
+  floatSpeed: 2.4
+  floatHeight: 0.12
+  pulseAmount: 0.06

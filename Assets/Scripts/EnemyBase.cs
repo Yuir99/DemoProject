@@ -8,12 +8,19 @@ public class EnemyBase : MonoBehaviour
     public float currentHP;
     public float moveSpeed = 2f;
     public float damage = 10f;
+    public float coreAttackInterval = 1f;
 
     [Header("Soul Drop")]
     public SoulType soulDropType = SoulType.Speed;
     public int soulDropCount = 1;
     public GameObject soulPrefab;
     public float xpReward = 5f;
+
+    [Header("Visual Animation")]
+    public Sprite[] walkSprites;
+    public Sprite[] deathSprites;
+    public float walkAnimationFps = 6f;
+    public float deathFrameDuration = 0.14f;
 
     protected Transform targetTransform;
 
@@ -22,11 +29,31 @@ public class EnemyBase : MonoBehaviour
     private Coroutine burnRoutine;
     private Coroutine knockbackRoutine;
     private bool isDead;
+    private EnergyCore attackedCore;
+    private float nextCoreAttackTime;
+    private SpriteRenderer visualRenderer;
+    private float walkAnimationTime;
+    private Rigidbody2D physicsBody;
+    private MapBounds2D mapBounds;
+
+    protected bool IsDead => isDead;
 
     protected virtual void Start()
     {
         currentHP = maxHP;
         baseMoveSpeed = moveSpeed;
+        visualRenderer = GetComponent<SpriteRenderer>();
+        physicsBody = GetComponent<Rigidbody2D>();
+        mapBounds = FindFirstObjectByType<MapBounds2D>();
+
+        if (physicsBody != null)
+        {
+            physicsBody.constraints |= RigidbodyConstraints2D.FreezeRotation;
+            physicsBody.linearVelocity = Vector2.zero;
+            physicsBody.angularVelocity = 0f;
+        }
+
+        IgnoreCrowdCollisions();
 
         GameObject core = GameObject.FindWithTag("EnergyCore");
         if (core != null)
@@ -42,12 +69,26 @@ public class EnemyBase : MonoBehaviour
 
     protected virtual void Update()
     {
+        if (isDead)
+            return;
+
+        StopPhysicsDrift();
+        UpdateWalkAnimation();
+
+        if (attackedCore != null)
+        {
+            TryAttackCore();
+            ClampToMapBounds();
+            return;
+        }
+
         MoveTowardTarget();
+        ClampToMapBounds();
     }
 
     protected virtual void MoveTowardTarget()
     {
-        if (targetTransform == null)
+        if (targetTransform == null || attackedCore != null)
             return;
 
         Vector2 dir = (targetTransform.position - transform.position).normalized;
@@ -145,6 +186,59 @@ public class EnemyBase : MonoBehaviour
         if (GameFlowManager.Instance != null)
             GameFlowManager.Instance.RegisterEnemyKilled(xpReward);
 
+        foreach (Collider2D collider in GetComponents<Collider2D>())
+            collider.enabled = false;
+
+        StartCoroutine(DeathAnimationRoutine());
+    }
+
+    void UpdateWalkAnimation()
+    {
+        if (visualRenderer == null || walkSprites == null || walkSprites.Length == 0)
+            return;
+
+        walkAnimationTime += Time.deltaTime;
+        int frame = Mathf.FloorToInt(walkAnimationTime * Mathf.Max(1f, walkAnimationFps)) % walkSprites.Length;
+        if (walkSprites[frame] != null)
+            visualRenderer.sprite = walkSprites[frame];
+    }
+
+    IEnumerator DeathAnimationRoutine()
+    {
+        if (visualRenderer != null && deathSprites != null && deathSprites.Length > 0)
+        {
+            foreach (Sprite frame in deathSprites)
+            {
+                if (frame != null)
+                    visualRenderer.sprite = frame;
+
+                yield return new WaitForSeconds(Mathf.Max(0.04f, deathFrameDuration));
+            }
+        }
+        else
+        {
+            float elapsed = 0f;
+            const float duration = 0.3f;
+            Vector3 startScale = transform.localScale;
+            Color startColor = visualRenderer != null ? visualRenderer.color : Color.white;
+
+            while (elapsed < duration)
+            {
+                elapsed += Time.deltaTime;
+                float progress = Mathf.Clamp01(elapsed / duration);
+                transform.localScale = Vector3.Lerp(startScale, startScale * 0.2f, progress);
+
+                if (visualRenderer != null)
+                {
+                    Color color = startColor;
+                    color.a = 1f - progress;
+                    visualRenderer.color = color;
+                }
+
+                yield return null;
+            }
+        }
+
         Destroy(gameObject);
     }
 
@@ -178,10 +272,42 @@ public class EnemyBase : MonoBehaviour
         {
             timer += Time.deltaTime;
             transform.Translate(direction * force * Time.deltaTime, Space.World);
+            ClampToMapBounds();
             yield return null;
         }
 
         knockbackRoutine = null;
+    }
+
+    protected void ClampToMapBounds()
+    {
+        mapBounds ??= FindFirstObjectByType<MapBounds2D>();
+        if (mapBounds == null)
+            return;
+
+        Vector2 clamped = mapBounds.ClampPoint(transform.position, mapBounds.enemyPadding);
+        transform.position = new Vector3(clamped.x, clamped.y, transform.position.z);
+    }
+
+    void StopPhysicsDrift()
+    {
+        if (physicsBody == null)
+            return;
+
+        physicsBody.linearVelocity = Vector2.zero;
+        physicsBody.angularVelocity = 0f;
+    }
+
+    void IgnoreCrowdCollisions()
+    {
+        int enemyLayer = LayerMask.NameToLayer("Enemy");
+        int playerLayer = LayerMask.NameToLayer("Player");
+
+        if (enemyLayer >= 0)
+            Physics2D.IgnoreLayerCollision(enemyLayer, enemyLayer, true);
+
+        if (enemyLayer >= 0 && playerLayer >= 0)
+            Physics2D.IgnoreLayerCollision(enemyLayer, playerLayer, true);
     }
 
     IEnumerator DamageFlash()
@@ -196,9 +322,34 @@ public class EnemyBase : MonoBehaviour
         sr.color = original;
     }
 
-    void OnTriggerStay2D(Collider2D other)
+    void OnCollisionStay2D(Collision2D collision)
     {
-        if (other.CompareTag("EnergyCore"))
-            other.GetComponent<EnergyCore>()?.TakeDamage(damage * Time.deltaTime);
+        if (!collision.collider.CompareTag("EnergyCore"))
+            return;
+
+        EnergyCore core = collision.collider.GetComponent<EnergyCore>();
+        if (core == null)
+            return;
+
+        attackedCore = core;
+    }
+
+    void OnCollisionExit2D(Collision2D collision)
+    {
+        if (!collision.collider.CompareTag("EnergyCore"))
+            return;
+
+        EnergyCore core = collision.collider.GetComponent<EnergyCore>();
+        if (core != null && core == attackedCore)
+            attackedCore = null;
+    }
+
+    void TryAttackCore()
+    {
+        if (attackedCore == null || Time.time < nextCoreAttackTime)
+            return;
+
+        attackedCore.TakeDamage(damage);
+        nextCoreAttackTime = Time.time + Mathf.Max(0.1f, coreAttackInterval);
     }
 }

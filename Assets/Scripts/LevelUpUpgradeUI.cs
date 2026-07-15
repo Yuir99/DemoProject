@@ -1,24 +1,25 @@
 using System;
 using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
-using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 public class LevelUpUpgradeUI : MonoBehaviour
 {
+    [SerializeField] private GameObject panel;
+    [SerializeField] private TMP_Text title;
+    [SerializeField] private Button[] upgradeButtons;
+
     private PlayerStats stats;
     private SoulGun soulGun;
     private PlayerController controller;
-    private GameObject panel;
-    private Text title;
-    private readonly List<Button> buttons = new List<Button>();
     private int pendingChoices;
 
     private struct UpgradeOption
     {
-        public string name;
-        public string description;
-        public Action apply;
+        public readonly string name;
+        public readonly string description;
+        public readonly Action apply;
 
         public UpgradeOption(string name, string description, Action apply)
         {
@@ -30,38 +31,46 @@ public class LevelUpUpgradeUI : MonoBehaviour
 
     void Start()
     {
-        EnsureEventSystem();
+        BindSceneUI();
         BindPlayer();
-        BuildUI();
+
+        if (panel != null)
+            panel.SetActive(false);
     }
 
     void Update()
     {
-        if (panel == null || !panel.activeSelf)
+        if (panel == null || !panel.activeSelf || upgradeButtons == null)
             return;
 
-        if (buttons.Count > 0 && buttons[0].gameObject.activeSelf && Input.GetKeyDown(KeyCode.Alpha1))
-            buttons[0].onClick.Invoke();
-        else if (buttons.Count > 1 && buttons[1].gameObject.activeSelf && Input.GetKeyDown(KeyCode.Alpha2))
-            buttons[1].onClick.Invoke();
-        else if (buttons.Count > 2 && buttons[2].gameObject.activeSelf && Input.GetKeyDown(KeyCode.Alpha3))
-            buttons[2].onClick.Invoke();
-    }
-
-    void EnsureEventSystem()
-    {
-        if (EventSystem.current != null)
-            return;
-
-        GameObject eventSystem = new GameObject("EventSystem");
-        eventSystem.AddComponent<EventSystem>();
-        eventSystem.AddComponent<StandaloneInputModule>();
+        if (upgradeButtons.Length > 0 && upgradeButtons[0].gameObject.activeSelf && Input.GetKeyDown(KeyCode.Alpha1))
+            upgradeButtons[0].onClick.Invoke();
+        else if (upgradeButtons.Length > 1 && upgradeButtons[1].gameObject.activeSelf && Input.GetKeyDown(KeyCode.Alpha2))
+            upgradeButtons[1].onClick.Invoke();
+        else if (upgradeButtons.Length > 2 && upgradeButtons[2].gameObject.activeSelf && Input.GetKeyDown(KeyCode.Alpha3))
+            upgradeButtons[2].onClick.Invoke();
     }
 
     void OnDestroy()
     {
         if (stats != null)
             stats.LeveledUp -= OnLevelUp;
+    }
+
+    void BindSceneUI()
+    {
+        panel ??= SceneObjectLookup.FindGameObject("LevelUpPanel");
+        title ??= SceneObjectLookup.FindComponent<TMP_Text>("LevelUpTitle");
+
+        if (upgradeButtons == null || upgradeButtons.Length != 3)
+        {
+            upgradeButtons = new[]
+            {
+                SceneObjectLookup.FindComponent<Button>("UpgradeButton1"),
+                SceneObjectLookup.FindComponent<Button>("UpgradeButton2"),
+                SceneObjectLookup.FindComponent<Button>("UpgradeButton3")
+            };
+        }
     }
 
     void BindPlayer()
@@ -81,7 +90,7 @@ public class LevelUpUpgradeUI : MonoBehaviour
     void OnLevelUp(int newLevel)
     {
         pendingChoices++;
-        if (!panel.activeSelf)
+        if (panel != null && !panel.activeSelf)
             ShowChoices(newLevel);
     }
 
@@ -89,12 +98,16 @@ public class LevelUpUpgradeUI : MonoBehaviour
     {
         bool choosingWeaponPath = ShouldShowWeaponPathChoice(level);
         List<UpgradeOption> pool = choosingWeaponPath ? BuildWeaponPathPool() : BuildUpgradePool();
-        int activeButtonCount = Mathf.Min(buttons.Count, pool.Count);
+        int activeButtonCount = Mathf.Min(upgradeButtons.Length, pool.Count);
         LayoutButtons(activeButtonCount);
 
-        for (int i = 0; i < buttons.Count; i++)
+        for (int i = 0; i < upgradeButtons.Length; i++)
         {
-            buttons[i].gameObject.SetActive(i < activeButtonCount);
+            Button button = upgradeButtons[i];
+            if (button == null)
+                continue;
+
+            button.gameObject.SetActive(i < activeButtonCount);
             if (i >= activeButtonCount)
                 continue;
 
@@ -102,15 +115,21 @@ public class LevelUpUpgradeUI : MonoBehaviour
             UpgradeOption option = pool[pick];
             pool.RemoveAt(pick);
 
-            Text label = buttons[i].GetComponentInChildren<Text>();
-            label.text = option.name + "\n" + option.description;
-            buttons[i].onClick.RemoveAllListeners();
-            buttons[i].onClick.AddListener(() => Choose(option));
+            TMP_Text label = button.GetComponentInChildren<TMP_Text>(true);
+            if (label != null)
+                label.text = option.name + "\n" + option.description;
+
+            button.onClick.RemoveAllListeners();
+            button.onClick.AddListener(() => Choose(option));
         }
 
-        title.text = choosingWeaponPath
-            ? "LEVEL " + level + " - CHOOSE YOUR WEAPON"
-            : "LEVEL " + level + " - CHOOSE AN UPGRADE";
+        if (title != null)
+        {
+            title.text = choosingWeaponPath
+                ? $"LEVEL {level} - CHOOSE YOUR WEAPON"
+                : $"LEVEL {level} - CHOOSE AN UPGRADE";
+        }
+
         panel.SetActive(true);
         Time.timeScale = 0f;
     }
@@ -124,22 +143,16 @@ public class LevelUpUpgradeUI : MonoBehaviour
     {
         return new List<UpgradeOption>
         {
-            new UpgradeOption(
-                "RIFLE PATH",
-                "Straight fast shots\n+fire rate, +move speed",
-                () =>
-                {
-                    soulGun?.ChooseRiflePath();
-                    controller?.UpgradeMoveSpeed(0.8f);
-                }),
-            new UpgradeOption(
-                "SHOTGUN PATH",
-                "Cone spread, shorter range\nclose shots hit harder",
-                () =>
-                {
-                    soulGun?.ChooseShotgunPath();
-                    controller?.UpgradeMoveSpeed(0.2f);
-                })
+            new UpgradeOption("RIFLE PATH", "Straight fast shots\n+fire rate, +move speed", () =>
+            {
+                soulGun?.ChooseRiflePath();
+                controller?.UpgradeMoveSpeed(0.8f);
+            }),
+            new UpgradeOption("SHOTGUN PATH", "Cone spread, shorter range\nclose shots hit harder", () =>
+            {
+                soulGun?.ChooseShotgunPath();
+                controller?.UpgradeMoveSpeed(0.2f);
+            })
         };
     }
 
@@ -159,12 +172,12 @@ public class LevelUpUpgradeUI : MonoBehaviour
 
     void LayoutButtons(int activeButtonCount)
     {
-        for (int i = 0; i < buttons.Count; i++)
+        for (int i = 0; i < upgradeButtons.Length; i++)
         {
-            RectTransform rect = buttons[i].GetComponent<RectTransform>();
-            if (rect == null)
+            if (upgradeButtons[i] == null)
                 continue;
 
+            RectTransform rect = upgradeButtons[i].GetComponent<RectTransform>();
             if (activeButtonCount == 2)
                 rect.anchoredPosition = new Vector2((i - 0.5f) * 430f, 0f);
             else
@@ -184,72 +197,5 @@ public class LevelUpUpgradeUI : MonoBehaviour
             panel.SetActive(false);
             Time.timeScale = 1f;
         }
-    }
-
-    void BuildUI()
-    {
-        Font font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
-        Canvas canvas = gameObject.AddComponent<Canvas>();
-        canvas.renderMode = RenderMode.ScreenSpaceOverlay;
-        canvas.sortingOrder = 200;
-
-        CanvasScaler scaler = gameObject.AddComponent<CanvasScaler>();
-        scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
-        scaler.referenceResolution = new Vector2(1920f, 1080f);
-        gameObject.AddComponent<GraphicRaycaster>();
-
-        panel = new GameObject("Level Up Panel");
-        panel.transform.SetParent(transform, false);
-        RectTransform panelRect = panel.AddComponent<RectTransform>();
-        panelRect.anchorMin = Vector2.zero;
-        panelRect.anchorMax = Vector2.one;
-        panelRect.offsetMin = Vector2.zero;
-        panelRect.offsetMax = Vector2.zero;
-        panel.AddComponent<Image>().color = new Color(0.01f, 0.015f, 0.03f, 0.88f);
-
-        title = CreateText(panel.transform, font, new Vector2(0f, 230f), new Vector2(900f, 70f), 34);
-
-        for (int i = 0; i < 3; i++)
-        {
-            GameObject buttonObject = new GameObject("Upgrade " + (i + 1));
-            buttonObject.transform.SetParent(panel.transform, false);
-            RectTransform rect = buttonObject.AddComponent<RectTransform>();
-            rect.anchorMin = rect.anchorMax = new Vector2(0.5f, 0.5f);
-            rect.sizeDelta = new Vector2(360f, 180f);
-            rect.anchoredPosition = new Vector2((i - 1) * 400f, 0f);
-
-            Image image = buttonObject.AddComponent<Image>();
-            image.color = new Color(0.09f, 0.13f, 0.2f, 1f);
-            Button button = buttonObject.AddComponent<Button>();
-            ColorBlock colors = button.colors;
-            colors.highlightedColor = new Color(0.18f, 0.32f, 0.42f, 1f);
-            colors.pressedColor = new Color(0.12f, 0.55f, 0.5f, 1f);
-            button.colors = colors;
-
-            Text text = CreateText(buttonObject.transform, font, Vector2.zero, new Vector2(326f, 156f), 24);
-            text.alignment = TextAnchor.MiddleCenter;
-            buttons.Add(button);
-        }
-
-        panel.SetActive(false);
-    }
-
-    Text CreateText(Transform parent, Font font, Vector2 position, Vector2 size, int fontSize)
-    {
-        GameObject textObject = new GameObject("Text");
-        textObject.transform.SetParent(parent, false);
-        RectTransform rect = textObject.AddComponent<RectTransform>();
-        rect.anchorMin = rect.anchorMax = new Vector2(0.5f, 0.5f);
-        rect.anchoredPosition = position;
-        rect.sizeDelta = size;
-
-        Text text = textObject.AddComponent<Text>();
-        text.font = font;
-        text.fontSize = fontSize;
-        text.color = Color.white;
-        text.alignment = TextAnchor.MiddleCenter;
-        text.horizontalOverflow = HorizontalWrapMode.Wrap;
-        text.verticalOverflow = VerticalWrapMode.Overflow;
-        return text;
     }
 }
