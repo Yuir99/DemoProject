@@ -75,7 +75,7 @@ public class WaveSpawner : MonoBehaviour
             currentWave++;
             Debug.Log($"=== WAVE {currentWave} START ===");
 
-            int runners = Mathf.Min(3 + currentWave * 2, IsEndless ? 28 : 15);
+            int runners = Mathf.Min(6 + currentWave * 2, IsEndless ? 28 : 15);
             int brutes = Mathf.Max(0, currentWave - 1);
             int swallowers = currentWave < 2 ? 0 : Mathf.Min(1 + (currentWave - 2) / 2, IsEndless ? 7 : 4);
 
