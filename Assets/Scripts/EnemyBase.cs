@@ -22,6 +22,11 @@ public class EnemyBase : MonoBehaviour
     public float walkAnimationFps = 6f;
     public float deathFrameDuration = 0.14f;
 
+    [Header("Detection Settings")]
+    public float detectionRadius = 5f; // Bán kính phát hiện mục tiêu
+    public LayerMask targetLayer;      // Layer chứa Player và Công trình
+    public float scanInterval = 0.2f;   // Thời gian giãn cách giữa các lần quét (giúp mượt game)
+
     protected Transform targetTransform;
 
     private float baseMoveSpeed;
@@ -35,6 +40,7 @@ public class EnemyBase : MonoBehaviour
     private float walkAnimationTime;
     private Rigidbody2D physicsBody;
     private MapBounds2D mapBounds;
+    private float nextScanTime;
 
     protected bool IsDead => isDead;
 
@@ -55,16 +61,8 @@ public class EnemyBase : MonoBehaviour
 
         IgnoreCrowdCollisions();
 
-        GameObject core = GameObject.FindWithTag("EnergyCore");
-        if (core != null)
-        {
-            targetTransform = core.transform;
-            return;
-        }
-
-        GameObject player = GameObject.FindWithTag("Player");
-        if (player != null)
-            targetTransform = player.transform;
+        // Mặc định lúc xuất hiện, tìm Core/Player ở xa trước
+        FindDefaultTarget();
     }
 
     protected virtual void Update()
@@ -74,6 +72,13 @@ public class EnemyBase : MonoBehaviour
 
         StopPhysicsDrift();
         UpdateWalkAnimation();
+
+        // Chủ động quét mục tiêu xung quanh theo chu kỳ thời gian
+        if (Time.time >= nextScanTime)
+        {
+            ScanForTargets();
+            nextScanTime = Time.time + scanInterval;
+        }
 
         if (attackedCore != null)
         {
@@ -93,6 +98,60 @@ public class EnemyBase : MonoBehaviour
 
         Vector2 dir = (targetTransform.position - transform.position).normalized;
         transform.Translate(dir * moveSpeed * Time.deltaTime);
+    }
+
+    // Cơ chế quét mục tiêu bằng Code thay thế cho Trigger Zone
+    private void ScanForTargets()
+    {
+        // Quét tất cả các Collider nằm trong vòng tròn bán kính detectionRadius thuộc targetLayer
+        Collider2D[] hitColliders = Physics2D.OverlapCircleAll(transform.position, detectionRadius, targetLayer);
+
+        if (hitColliders.Length == 0)
+        {
+            // Nếu không có ai ở gần, quay lại đuổi theo mục tiêu mặc định từ xa
+            if (targetTransform == null || !targetTransform.gameObject.activeInHierarchy)
+            {
+                FindDefaultTarget();
+            }
+            return;
+        }
+
+        Transform closestTarget = null;
+        float minDistance = float.MaxValue;
+
+        foreach (var col in hitColliders)
+        {
+            // Lọc đúng Tag mong muốn
+            if (col.CompareTag("Player") || col.CompareTag("EnergyCore"))
+            {
+                float distance = Vector2.Distance(transform.position, col.transform.position);
+                if (distance < minDistance)
+                {
+                    minDistance = distance;
+                    closestTarget = col.transform;
+                }
+            }
+        }
+
+        // Nếu tìm thấy đối tượng gần nhất ở trong tầm, đổi mục tiêu sang đối tượng đó
+        if (closestTarget != null)
+        {
+            targetTransform = closestTarget;
+        }
+    }
+
+    private void FindDefaultTarget()
+    {
+        GameObject core = GameObject.FindWithTag("EnergyCore");
+        if (core != null)
+        {
+            targetTransform = core.transform;
+            return;
+        }
+
+        GameObject player = GameObject.FindWithTag("Player");
+        if (player != null)
+            targetTransform = player.transform;
     }
 
     public virtual void TakeDamage(float amount)
@@ -351,5 +410,12 @@ public class EnemyBase : MonoBehaviour
 
         attackedCore.TakeDamage(damage);
         nextCoreAttackTime = Time.time + Mathf.Max(0.1f, coreAttackInterval);
+    }
+
+    // Vẽ vòng tròn đỏ trong Editor giúp dễ căn chỉnh bán kính tầm nhìn
+    private void OnDrawGizmosSelected()
+    {
+        Gizmos.color = Color.red;
+        Gizmos.DrawWireSphere(transform.position, detectionRadius);
     }
 }
