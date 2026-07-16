@@ -31,7 +31,6 @@ public class LevelUpUpgradeUI : MonoBehaviour
 
     void Start()
     {
-        BindSceneUI();
         BindPlayer();
 
         if (panel != null)
@@ -57,21 +56,6 @@ public class LevelUpUpgradeUI : MonoBehaviour
             stats.LeveledUp -= OnLevelUp;
     }
 
-    void BindSceneUI()
-    {
-        panel ??= SceneObjectLookup.FindGameObject("LevelUpPanel");
-        title ??= SceneObjectLookup.FindComponent<TMP_Text>("LevelUpTitle");
-
-        if (upgradeButtons == null || upgradeButtons.Length != 3)
-        {
-            upgradeButtons = new[]
-            {
-                SceneObjectLookup.FindComponent<Button>("UpgradeButton1"),
-                SceneObjectLookup.FindComponent<Button>("UpgradeButton2"),
-                SceneObjectLookup.FindComponent<Button>("UpgradeButton3")
-            };
-        }
-    }
 
     void BindPlayer()
     {
