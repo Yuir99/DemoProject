@@ -44,6 +44,9 @@ public class EnemyBase : MonoBehaviour
 
     protected bool IsDead => isDead;
 
+    private PlayerStats attackedPlayer; // <-- THÊM DÒNG NÀY: Lưu trữ Player đang va chạm
+    private float nextAttackTime;       // <-- ĐỔI TÊN: Dùng chung thời gian hồi đòn cho cả Core và Player
+
     protected virtual void Start()
     {
         currentHP = maxHP;
@@ -82,7 +85,7 @@ public class EnemyBase : MonoBehaviour
 
         if (attackedCore != null)
         {
-            TryAttackCore();
+            TryAttackTargets();
             ClampToMapBounds();
             return;
         }
@@ -381,35 +384,77 @@ public class EnemyBase : MonoBehaviour
         sr.color = original;
     }
 
-    void OnCollisionStay2D(Collision2D collision)
+void OnCollisionStay2D(Collision2D collision)
     {
-        if (!collision.collider.CompareTag("EnergyCore"))
-            return;
+        // 1. Xử lý va chạm với EnergyCore (Giữ nguyên logic cũ của bạn)
+        if (collision.collider.CompareTag("EnergyCore"))
+        {
+            EnergyCore core = collision.collider.GetComponent<EnergyCore>();
+            if (core != null)
+            {
+                attackedCore = core;
+            }
+        }
 
-        EnergyCore core = collision.collider.GetComponent<EnergyCore>();
-        if (core == null)
-            return;
+        // 2. THÊM MỚI: Xử lý va chạm với Player
+        if (collision.collider.CompareTag("Player"))
+        {
+            PlayerStats player = collision.collider.GetComponent<PlayerStats>();
+            if (player != null)
+            {
+                attackedPlayer = player;
+            }
+        }
 
-        attackedCore = core;
+        // Thực hiện tấn công bất kỳ mục tiêu nào đang bám dính
+        TryAttackTargets();
     }
 
-    void OnCollisionExit2D(Collision2D collision)
+ void OnCollisionExit2D(Collision2D collision)
     {
-        if (!collision.collider.CompareTag("EnergyCore"))
-            return;
+        // Rời khỏi EnergyCore
+        if (collision.collider.CompareTag("EnergyCore"))
+        {
+            EnergyCore core = collision.collider.GetComponent<EnergyCore>();
+            if (core != null && core == attackedCore)
+                attackedCore = null;
+        }
 
-        EnergyCore core = collision.collider.GetComponent<EnergyCore>();
-        if (core != null && core == attackedCore)
-            attackedCore = null;
+        // THÊM MỚI: Rời khỏi Player
+        if (collision.collider.CompareTag("Player"))
+        {
+            PlayerStats player = collision.collider.GetComponent<PlayerStats>();
+            if (player != null && player == attackedPlayer)
+                attackedPlayer = null;
+        }
     }
 
-    void TryAttackCore()
+    void TryAttackTargets()
     {
-        if (attackedCore == null || Time.time < nextCoreAttackTime)
+        if (Time.time < nextAttackTime)
             return;
 
-        attackedCore.TakeDamage(damage);
-        nextCoreAttackTime = Time.time + Mathf.Max(0.1f, coreAttackInterval);
+        bool attackedSomething = false;
+
+        // Nếu đang chạm Core -> Gây sát thương cho Core
+        if (attackedCore != null)
+        {
+            attackedCore.TakeDamage(damage);
+            attackedSomething = true;
+        }
+        
+        // Nếu đang chạm Player -> Gây sát thương cho Player (dùng hàm TakeDamage có sẵn của bạn)
+        else if (attackedPlayer != null)
+        {
+            attackedPlayer.TakeDamage(damage);
+            attackedSomething = true;
+        }
+
+        // Nếu có tấn công (Core hoặc Player), bắt đầu tính thời gian hồi đòn tiếp theo
+        if (attackedSomething)
+        {
+            nextAttackTime = Time.time + Mathf.Max(0.1f, coreAttackInterval);
+        }
     }
 
     // Vẽ vòng tròn đỏ trong Editor giúp dễ căn chỉnh bán kính tầm nhìn
