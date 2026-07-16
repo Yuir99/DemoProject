@@ -89,9 +89,9 @@ public class WaveSpawner : MonoBehaviour
         // Đợi hết thời gian chiến đấu của Wave hiện tại
         yield return new WaitForSeconds(IsEndless ? 18f : 20f);
         
-        // --- THÊM KHOẢNG NGHỈ 10 GIÂY Ở ĐÂY ---
+        // --- THÊM KHOẢNG NGHỈ 5 GIÂY Ở ĐÂY ---
         Debug.Log($"=== WAVE {currentWave} CLEARED! 10s RESTING TIME... ===");
-        yield return new WaitForSeconds(10f);
+        yield return new WaitForSeconds(5f);
     }
 }
 

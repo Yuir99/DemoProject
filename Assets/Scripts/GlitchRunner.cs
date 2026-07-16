@@ -13,7 +13,7 @@ public class GlitchRunner : EnemyBase
         damage = 5f;
         soulDropType = SoulType.Speed;
         soulDropCount = 1;
-        xpReward = 3f;
+        xpReward = 6f;
 
         base.Start();
 
