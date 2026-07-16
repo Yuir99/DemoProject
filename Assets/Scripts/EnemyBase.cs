@@ -6,9 +6,9 @@ public class EnemyBase : MonoBehaviour
     [Header("Stats")]
     public float maxHP = 50f;
     public float currentHP;
-    public float moveSpeed = 2f;
-    public float damage = 10f;
-    public float coreAttackInterval = 1f;
+    public float moveSpeed = 1f;
+    public float damage = 20f;
+    public float coreAttackInterval = 2f;
 
     [Header("Soul Drop")]
     public SoulType soulDropType = SoulType.Speed;
