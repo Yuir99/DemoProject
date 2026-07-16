@@ -118,10 +118,13 @@ public class SoulGun : MonoBehaviour
 
     void Update()
     {
-        HandleShooting();
-        HandleSoulSuck();
-        HandleSoulTypeSelect();
-        HandleFeedTurret();
+        if (Time.timeScale == 0f) 
+        return;
+
+    HandleShooting();
+    HandleSoulSuck();
+    HandleSoulTypeSelect();
+    HandleFeedTurret();
     }
 
     void HandleShooting()
